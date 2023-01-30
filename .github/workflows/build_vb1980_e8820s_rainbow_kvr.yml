@@ -1,4 +1,4 @@
-name: Build ZTE-E8820S rainbow kvr from vb1980 private repo
+name: Build ZTE-E8820S rainbow kvr from gustavo8000br private repo
 
 on: 
   workflow_dispatch:
@@ -27,7 +27,7 @@ on:
         description: 'whether to upload firmware to wetransfer'
         default: 'true'
 env:
-  REPOSITORY_URL: https://vb1980:${{ secrets.PRIVREPOTOKEN }}@github.com/vb1980/my-padavan.git
+  REPOSITORY_URL: https://gustavo8000br:${{ secrets.PRIVREPOTOKEN }}@github.com/gustavo8000br/my-padavan.git
   TOOLCHAIN_URL: https://github.com/hanwckf/padavan-toolchain/releases/download/v1.1/mipsel-linux-uclibc.tar.xz
   WORK_PATH: /opt/rt-n56u
   TIME_ZONE: Asia/Shanghai
