@@ -23,7 +23,7 @@ on:
         description: 'whether to upload firmware to wetransfer'
         default: 'true'
 env:
-  REPOSITORY_URL: https://gustavo8000br:${{ secrets.PRIVREPOTOKEN }}@github.com/gustavo8000br/my-padavan.git
+  REPOSITORY_URL: https://gustavo8000br:${{ secrets.PRIVREPOTOKEN }}@github.com/gustavo8000br/My-Padavan-KVR.git
   TOOLCHAIN_URL: https://github.com/hanwckf/padavan-toolchain/releases/download/v1.1/mipsel-linux-uclibc.tar.xz
   WORK_PATH: /opt/rt-n56u
   TIME_ZONE: Asia/Shanghai
