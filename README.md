@@ -1,3 +1,3 @@
 Build Padavan firmwares through git action.
 
-- [[StartBuild](https://github.com/vb1980/Padavan_CI/actions?query=workflow%3A%22Build+Padavan%22)]
+- [[StartBuild](https://github.com/gustavo8000br/Padavan_CI/actions?query=workflow%3A%22Build+Padavan%22)]
