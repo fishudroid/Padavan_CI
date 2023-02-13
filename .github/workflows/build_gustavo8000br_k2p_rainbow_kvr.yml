@@ -1,4 +1,4 @@
-name: Build K2P rainbow kvr from vb1980 private repo
+name: Build K2P rainbow kvr from gustavo8000br private repo
 
 on:
   workflow_dispatch:
