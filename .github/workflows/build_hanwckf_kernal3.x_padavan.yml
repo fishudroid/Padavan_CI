@@ -50,6 +50,7 @@ on:
         - R6220
         - NETGEAR-CHJ
         - NETGEAR-BZV
+        default: ZTE_E8820S
       uploadwet:
         type: boolean
         description: 'whether to upload firmware to wetransfer'
