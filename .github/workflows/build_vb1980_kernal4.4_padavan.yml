@@ -42,7 +42,7 @@ on:
       plugins:
         description: 'json format string of include configs'
         required: true
-        default: '{"vpnsvr":"n","vpncli":"n","vpncmd":"n","ss":"y","v2ray":"n","xray":"y","trojan":"y","ssobfs":"y","dnsforwarder":"n","adbyby":"n","adguardhome":"n","smartdns":"n","aliddns":"n","zerotier":"n","ddnsto":"n","wireguard":"n","frpc":"y","aldrive":"n","sqm":"y","mentohust":"n","scutclient":"n","njitclient":"n","minieap":"n","dogcom":"n"}'
+        default: '{"vpnsvr":"n","vpncli":"n","vpncmd":"n","ss":"y","v2ray":"n","xray":"y","trojan":"y","ssobfs":"y","dnsforwarder":"n","adbyby":"n","adguardhome":"n","smartdns":"n","aliddns":"n","zerotier":"n","ddnsto":"n","wireguard":"n","frpc":"y","aldrive":"n","sqm":"y","mentohust":"n","scutclient":"n","njitclient":"n","minieap":"n","dogcom":"n","lang_br":"y"}'
       rainbowui:
         type: boolean
         description: 'whether to apply rainbow ui'
@@ -164,6 +164,7 @@ jobs:
         echo "njitclient=${{fromJson(github.event.inputs.plugins).njitclient}}" >> $GITHUB_ENV
         echo "minieap=${{fromJson(github.event.inputs.plugins).minieap}}" >> $GITHUB_ENV
         echo "dogcom=${{fromJson(github.event.inputs.plugins).dogcom}}" >> $GITHUB_ENV
+        echo "dogcom=${{fromJson(github.event.inputs.plugins).lang_br}}" >> $GITHUB_ENV
     - name: Custom config
       run: |
         cd $WORK_PATH/trunk
@@ -247,6 +248,8 @@ jobs:
         #格式如下：
         #sed -i '/自定义项/d' .config
         #echo "自定义项=y" >> .config
+        sed -i '/CONFIG_FIRMWARE_INCLUDE_LANG_BR/d' .config
+        echo "CONFIG_FIRMWARE_INCLUDE_LANG_BR=${{env.lang_br}}" >> .config
         sed -i "s/FIRMWARE_BUILDS_REV=.*/FIRMWARE_BUILDS_REV=${{ github.event.inputs.firmwarever }}/g" ./versions.inc
         echo '更新版本号时间'
         #########################################################################################
