@@ -27,6 +27,7 @@ on:
         - BELL-A040WQ
         - ZTE-E8820S
         - B70
+        default: ZTE-E8820S
       plugins:
         description: 'json format string of include configs'
         required: true
