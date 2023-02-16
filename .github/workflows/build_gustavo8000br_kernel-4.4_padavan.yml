@@ -1,4 +1,4 @@
-name: Build gustavo8000br Kernal-4.4 Padavan
+name: Build gustavo8000br Kernel-4.4 Padavan
 
 on:
   workflow_dispatch:
@@ -75,7 +75,7 @@ jobs:
         sudo timedatectl set-timezone "$TIME_ZONE"
     - name: Clone source code
       run: |
-        git clone -b { github.event.inputs.branch_to_build } --depth=1 $REPOSITORY_URL $WORK_PATH
+        git clone -b ${{ github.event.inputs.branch_to_build }} --depth=1 $REPOSITORY_URL $WORK_PATH
         cd $WORK_PATH/toolchain-mipsel
         mkdir -p toolchain-4.4.x
         wget $TOOLCHAIN_URL
