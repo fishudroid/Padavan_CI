@@ -45,7 +45,7 @@ on:
         default: 'main'
       fw_type:
         type: choice
-        description: 'select a branch from source to build'
+        description: 'select a branch from source to build a type of the fw'
         options:
         - main
         - pr-test
