@@ -35,7 +35,7 @@ on:
       firmwarever:
         description: 'firmware''s version'
         required: true
-        default: $(date +"%Y%m%d")
+        default: '20230216'
       branch_to_build:
         type: choice
         description: 'select a branch from source to build'
