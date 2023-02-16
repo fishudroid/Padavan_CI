@@ -43,6 +43,13 @@ on:
         - main
         - pr-test
         default: 'main'
+      fw_type:
+        type: choice
+        description: 'select a branch from source to build'
+        options:
+        - main
+        - pr-test
+        default: 'main'
       uploadwet:
         type: boolean
         description: 'whether to upload firmware to wetransfer'
@@ -55,6 +62,7 @@ env:
   FIRMWARE_DATEPREFIX: $(date +"%Y%m%d")
   FIRMWARE_AUTHOR: gustavo8000br
   FIRMWARE_PATH: /opt/firmwares
+  FW_TYPE: ${{ github.event.inputs.fw_type }}
 jobs:
   build:
     runs-on: ubuntu-20.04
@@ -202,12 +210,13 @@ jobs:
         sudo ./build_firmware_modify ${{ github.event.inputs.target }} 0
         echo "FIRMWARE_DATEPREFIX=$(date +"%Y%m%d")" >> $GITHUB_ENV
     - name: Organize firmware files
-      id: organize
+      id: organize-types
+      if: env.FW_TYPE == ${{ github.event.inputs.branch_to_build }}
       run: |
         mkdir -p $FIRMWARE_PATH/
         cd $WORK_PATH/trunk/images
         for firmwarefile in $(ls *.trx)
-        do sudo mv $firmwarefile $FIRMWARE_PATH/${FIRMWARE_DATEPREFIX}"_"${FIRMWARE_AUTHOR}"_"${{ github.event.inputs.target }}"_kernel-4.4.trx"
+        do sudo mv $firmwarefile $FIRMWARE_PATH/${FW_TYPE}"_"${FIRMWARE_DATEPREFIX}"_"${FIRMWARE_AUTHOR}"_"${{ github.event.inputs.target }}"_kernel-4.4.trx"
         done
         cd $FIRMWARE_PATH
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
