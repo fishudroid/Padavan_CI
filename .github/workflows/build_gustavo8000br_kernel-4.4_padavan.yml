@@ -105,7 +105,7 @@ jobs:
         echo "njitclient=${{fromJson(github.event.inputs.plugins).njitclient}}" >> $GITHUB_ENV
         echo "minieap=${{fromJson(github.event.inputs.plugins).minieap}}" >> $GITHUB_ENV
         echo "dogcom=${{fromJson(github.event.inputs.plugins).dogcom}}" >> $GITHUB_ENV
-        echo "dogcom=${{fromJson(github.event.inputs.plugins).lang_br}}" >> $GITHUB_ENV
+        echo "lang_br=${{fromJson(github.event.inputs.plugins).lang_br}}" >> $GITHUB_ENV
     - name: Custom config
       run: |
         cd $WORK_PATH/trunk
