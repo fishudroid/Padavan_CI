@@ -35,7 +35,7 @@ on:
       firmwarever:
         description: 'firmware''s version'
         required: true
-        default: '20230216'
+        default: $(date +"%Y%m%d")
       branch_to_build:
         type: choice
         description: 'select a branch from source to build'
@@ -152,45 +152,48 @@ jobs:
         echo "CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_CMD=${{env.vpncmd}}" >> .config #SOFTETHERVPN
         # science related
         echo "CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS=${{env.ss}}" >> .config #SS plus+
-        echo "CONFIG_FIRMWARE_INCLUDE_V2RAY=${{env.v2ray}}" >> .config #集成v2ray执行文件（3.8M左右)
-        echo "CONFIG_FIRMWARE_INCLUDE_XRAY=${{env.xray}}" >> .config #集成xray执行文件(5.6M左右)，可以代替v2ray，注：如果闪存太小不够还是建议使用v2ray
-        echo "CONFIG_FIRMWARE_INCLUDE_TROJAN=${{env.trojan}}" >> .config #集成trojan执行文件(1.1M左右)
-        echo "CONFIG_FIRMWARE_INCLUDE_SSOBFS=${{env.ssobfs}}" >> .config # simple-obfs混淆插件
+        echo "CONFIG_FIRMWARE_INCLUDE_V2RAY=${{env.v2ray}}" >> .config # Integrated v2ray execution file (about 3.8M)
+        echo "CONFIG_FIRMWARE_INCLUDE_XRAY=${{env.xray}}" >> .config # Integrated xray execution file (about 5.6M), can replace v2ray, note: if the flash memory is too small, it is recommended to use v2ray
+        echo "CONFIG_FIRMWARE_INCLUDE_TROJAN=${{env.trojan}}" >> .config # Integrate trojan execution file (about 1.1M)
+        echo "CONFIG_FIRMWARE_INCLUDE_SSOBFS=${{env.ssobfs}}" >> .config # simple-obfs obfuscation plugin
         echo "CONFIG_FIRMWARE_INCLUDE_SSSERVER=n" >> .config #SS server
         #
-        echo "CONFIG_FIRMWARE_INCLUDE_SRELAY=n" >> .config #可以不集成
-        echo "CONFIG_FIRMWARE_INCLUDE_TUNSAFE=n" >> .config #tunsafe
-        echo "CONFIG_FIRMWARE_INCLUDE_DNSFORWARDER=${{env.dnsforwarder}}" >> .config #dnsforwarder
+        echo "CONFIG_FIRMWARE_INCLUDE_SRELAY=n" >> .config # Can not be integrated
+        echo "CONFIG_FIRMWARE_INCLUDE_TUNSAFE=n" >> .config # tunsafe
+        echo "CONFIG_FIRMWARE_INCLUDE_DNSFORWARDER=${{env.dnsforwarder}}" >> .config # dnsforwarder
         #
-        echo "CONFIG_FIRMWARE_INCLUDE_ADBYBY=${{env.adbyby}}" >> .config #adbyby plus+
+        echo "CONFIG_FIRMWARE_INCLUDE_ADBYBY=${{env.adbyby}}" >> .config # adbyby plus+
         #
-        echo "CONFIG_FIRMWARE_INCLUDE_ADGUARDHOME=${{env.adguardhome}}" >> .config #adguardhome
-        echo "CONFIG_FIRMWARE_INCLUDE_SMARTDNS=${{env.smartdns}}" >> .config #smartdns
+        echo "CONFIG_FIRMWARE_INCLUDE_ADGUARDHOME=${{env.adguardhome}}" >> .config # adguardhome
+        echo "CONFIG_FIRMWARE_INCLUDE_SMARTDNS=${{env.smartdns}}" >> .config # smartdns
         #
-        echo "CONFIG_FIRMWARE_INCLUDE_ALIDDNS=${{env.aliddns}}" >> .config #阿里DDNS
-        echo "CONFIG_FIRMWARE_INCLUDE_ZEROTIER=${{env.zerotier}}" >> .config #zerotier ~1.3M
-        echo "CONFIG_FIRMWARE_INCLUDE_DDNSTO=${{env.ddnsto}}" >> .config #ddnsto
-        echo "CONFIG_FIRMWARE_INCLUDE_WIREGUARD=${{env.wireguard}}" >> .config #wireguard
+        echo "CONFIG_FIRMWARE_INCLUDE_ALIDDNS=${{env.aliddns}}" >> .config # Ali DDNS
+        echo "CONFIG_FIRMWARE_INCLUDE_ZEROTIER=${{env.zerotier}}" >> .config # zerotier ~1.3M
+        echo "CONFIG_FIRMWARE_INCLUDE_DDNSTO=${{env.ddnsto}}" >> .config # ddnsto
+        echo "CONFIG_FIRMWARE_INCLUDE_WIREGUARD=${{env.wireguard}}" >> .config # wireguard
         #
-        echo "CONFIG_FIRMWARE_INCLUDE_ALDRIVER=${{env.aldrive}}" >> .config #阿里云盘
-        echo "CONFIG_FIRMWARE_INCLUDE_SQM=${{env.sqm}}" >> .config #SQM
+        echo "CONFIG_FIRMWARE_INCLUDE_ALDRIVER=${{env.aldrive}}" >> .config # Alibaba cloud disk
+        echo "CONFIG_FIRMWARE_INCLUDE_SQM=${{env.sqm}}" >> .config # SQM
         #
-        #校园网相关开始
-        echo "CONFIG_FIRMWARE_INCLUDE_MENTOHUST=${{env.mentohust}}" >> .config #MENTOHUST
-        echo "CONFIG_FIRMWARE_INCLUDE_SCUTCLIENT=${{env.scutclient}}" >> .config #SCUTCLIENT
+        # Campus network related start
+        echo "CONFIG_FIRMWARE_INCLUDE_MENTOHUST=${{env.mentohust}}" >> .config # MENTOHUST
+        echo "CONFIG_FIRMWARE_INCLUDE_SCUTCLIENT=${{env.scutclient}}" >> .config # SCUTCLIENT
         echo "CONFIG_FIRMWARE_INCLUDE_NJIT_CLIENT=${{env.njitclient}}" >> .config
         echo "CONFIG_FIRMWARE_INCLUDE_MINIEAP=${{env.minieap}}" >> .config
         echo "CONFIG_FIRMWARE_INCLUDE_DOGCOM=${{env.dogcom}}" >> .config
-        #校园网相关结束
+        # Campus network related end
         #########################################################################################
-        #自定义添加其它功能请参考源码configs/templates/目录下的config文件。按照上面的格式添加即可
-        #格式如下：
-        #sed -i '/自定义项/d' .config
-        #echo "自定义项=y" >> .config
+        # For custom adding other functions,
+        # please refer to the config file in the source code configs/templates/ directory.
+        # Just add it in the above format
+        # 
+        # The format is as follows:
+        #sed -i '/customization/d' .config
+        #echo "customization=y" >> .config
         sed -i '/CONFIG_FIRMWARE_INCLUDE_LANG_BR/d' .config
         echo "CONFIG_FIRMWARE_INCLUDE_LANG_BR=${{env.lang_br}}" >> .config
         sed -i "s/FIRMWARE_BUILDS_REV=.*/FIRMWARE_BUILDS_REV=${{ github.event.inputs.firmwarever }}/g" ./versions.inc
-        echo '更新版本号时间'
+        echo 'Update version number time'
         #########################################################################################
     - name: Build firmware
       run: |
