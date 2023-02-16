@@ -200,7 +200,7 @@ jobs:
         #echo "customization=y" >> .config
         sed -i '/CONFIG_FIRMWARE_INCLUDE_LANG_BR/d' .config
         echo "CONFIG_FIRMWARE_INCLUDE_LANG_BR=${{env.lang_br}}" >> .config
-        sed -i "s/FIRMWARE_BUILDS_REV=.*/FIRMWARE_BUILDS_REV=${{ github.event.inputs.firmwarever }}/g" ./versions.inc
+        sed -i "s/FIRMWARE_BUILDS_REV=.*/FIRMWARE_BUILDS_REV=${FW_TYPE}"-"${{ github.event.inputs.firmwarever }}/g" ./versions.inc
         echo 'Update version number time'
         #########################################################################################
     - name: Build firmware
@@ -216,7 +216,7 @@ jobs:
         mkdir -p $FIRMWARE_PATH/
         cd $WORK_PATH/trunk/images
         for firmwarefile in $(ls *.trx)
-        do sudo mv $firmwarefile $FIRMWARE_PATH/${FW_TYPE}"_"${FIRMWARE_DATEPREFIX}"_"${FIRMWARE_AUTHOR}"_"${{ github.event.inputs.target }}"_kernel-4.4.trx"
+        do sudo mv $firmwarefile $FIRMWARE_PATH/${FW_TYPE}"-"${FIRMWARE_DATEPREFIX}"_"${FIRMWARE_AUTHOR}"_"${{ github.event.inputs.target }}"_kernel-4.4.trx"
         done
         cd $FIRMWARE_PATH
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
