@@ -1,4 +1,4 @@
-name: Build gustavo8000br Kernal4.4 Padavan
+name: Build gustavo8000br Kernal-4.4 Padavan
 
 on:
   workflow_dispatch:
@@ -35,7 +35,14 @@ on:
       firmwarever:
         description: 'firmware''s version'
         required: true
-        default: '20220218'
+        default: '20230216'
+      branch_to_build:
+        type: choice
+        description: 'select a branch from source to build'
+        options:
+        - main
+        - pr-test
+        default: 'main'
       uploadwet:
         type: boolean
         description: 'whether to upload firmware to wetransfer'
@@ -68,7 +75,7 @@ jobs:
         sudo timedatectl set-timezone "$TIME_ZONE"
     - name: Clone source code
       run: |
-        git clone --depth=1 $REPOSITORY_URL $WORK_PATH
+        git clone -b { github.event.inputs.branch_to_build } --depth=1 $REPOSITORY_URL $WORK_PATH
         cd $WORK_PATH/toolchain-mipsel
         mkdir -p toolchain-4.4.x
         wget $TOOLCHAIN_URL
