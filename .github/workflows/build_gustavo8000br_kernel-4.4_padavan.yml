@@ -248,17 +248,16 @@ jobs:
         ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
         echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep -o -E "https?://[a-zA-Z0-9\.\/_&=@$%?~#-]*")"
         echo "WETRANSFER_URL=$(cat wetransfer.log | grep -o -E "https?://[a-zA-Z0-9\.\/_&=@$%?~#-]*")" >> $GITHUB_ENV
-    - name: Create Release 🚀
-      uses: ncipollo/release-action@v1.12.0
-      if: env.STATUS == 'success' && github.event.inputs.release == 'true'
-      id: create_release
-      with:
-         token: ${{ secrets.GITHUB_TOKEN }}
-         tag: "latest"
-         name: "latest"
-         prerelease: true
-         artifacts: |
-            ${FIRMWARE}/*.trx
+    #- name: Create Release 🚀
+    #  uses: ncipollo/release-action@v1.12.0
+    #  if: env.STATUS == 'success' && github.event.inputs.release == 'true'
+    #  id: create_release
+    #  with:
+    #     token: ${{ secrets.GITHUB_TOKEN }}
+    #     tag: "latest"
+    #     name: "latest"
+    #     prerelease: true
+    #     artifacts: ${FIRMWARE}/*.trx
 ################################ End Upload ###############################
     - name: Remove obsolete firmwares on artifacts 🔥
       uses: c-hive/gha-remove-artifacts@v1.3.0
