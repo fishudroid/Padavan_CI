@@ -71,7 +71,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@main
-    - name: Initialization environment
+    - name: Initialization environment 🚧
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
@@ -81,14 +81,14 @@ jobs:
         texinfo build-essential help2man pkg-config zlib1g-dev libgmp3-dev \
         libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget libc-dev-bin
         sudo timedatectl set-timezone "$TIME_ZONE"
-    - name: Clone source code
+    - name: Clone source code ✨
       run: |
         git clone -b ${{ github.event.inputs.branch_to_build }} --depth=1 $REPOSITORY_URL $WORK_PATH
         cd $WORK_PATH/toolchain-mipsel
         mkdir -p toolchain-4.4.x
         wget $TOOLCHAIN_URL
         tar -xf mipsel-linux-uclibc.tar.xz -C toolchain-4.4.x
-    - name: Parse json string of include plugins
+    - name: Parse json string of include plugins 🚧
       run: |
         echo "vpnsvr=${{fromJson(github.event.inputs.plugins).vpnsvr}}" >> $GITHUB_ENV
         echo "vpncli=${{fromJson(github.event.inputs.plugins).vpncli}}" >> $GITHUB_ENV
@@ -200,18 +200,18 @@ jobs:
         #echo "customization=y" >> .config
         sed -i '/CONFIG_FIRMWARE_INCLUDE_LANG_BR/d' .config
         echo "CONFIG_FIRMWARE_INCLUDE_LANG_BR=${{env.lang_br}}" >> .config
-        sed -i "s/FIRMWARE_BUILDS_REV=.*/FIRMWARE_BUILDS_REV=${FW_TYPE}"-"${{ github.event.inputs.firmwarever }}/g" ./versions.inc
+        sed -i "s/FIRMWARE_BUILDS_REV=.*/FIRMWARE_BUILDS_REV=${{ github.event.inputs.fw_type }}"-"${{ github.event.inputs.firmwarever }}/g" ./versions.inc
         echo 'Update version number time'
         #########################################################################################
-    - name: Build firmware
+    - name: Build firmware 🦺
       run: |
         cd $WORK_PATH/trunk
         sudo ./clear_tree
         sudo ./build_firmware_modify ${{ github.event.inputs.target }} 0
         echo "FIRMWARE_DATEPREFIX=$(date +"%Y%m%d")" >> $GITHUB_ENV
-    - name: Organize firmware files
+        echo "FIRMWARE_TYPE=${{ github.event.inputs.fw_type }}" >> $GITHUB_ENV
+    - name: Organize firmware files 🎉🗃️
       id: organize-types
-      if: env.FW_TYPE == ${{ github.event.inputs.branch_to_build }}
       run: |
         mkdir -p $FIRMWARE_PATH/
         cd $WORK_PATH/trunk/images
@@ -221,20 +221,39 @@ jobs:
         cd $FIRMWARE_PATH
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "STATUS=success" >> $GITHUB_ENV
-    - name : Upload packages
+    - name : Upload packages ✅
       uses: actions/upload-artifact@main
       if: env.STATUS == 'success'
       with:
         name: Padavan44-packages
         path: ${{ env.FIRMWARE }}
-    - name: Upload firmware to WeTransfer
+    - name : Changelog 📝
+      if: env.STATUS == 'success' && github.event.inputs.uploadwet == 'true'
+      uses: TriPSs/conventional-changelog-action@3.18.0
+      id: Changelog
+      env:
+       git-branch: ${{ github.event.inputs.fw_type }}
+       git-url: ${{ env.REPOSITORY_URL }}
+    - name: Upload firmware to WeTransfer ✅
       if: env.STATUS == 'success' && github.event.inputs.uploadwet == 'true'
       run: |
         curl -fsSL git.io/file-transfer | sh
         ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
         echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep -o -E "https?://[a-zA-Z0-9\.\/_&=@$%?~#-]*")"
         echo "WETRANSFER_URL=$(cat wetransfer.log | grep -o -E "https?://[a-zA-Z0-9\.\/_&=@$%?~#-]*")" >> $GITHUB_ENV
-    - name: Remove obsolete firmwares on artifacts
+    - name: Create Release 🚀
+      uses: ncipollo/release-action@vlatest
+      if: env.STATUS == 'success' && ${{ steps.changelog.outputs.skipped == 'false' }}
+      id: create_release
+      with:
+         token: ${{ secrets.GITHUB_TOKEN }}
+         tag: "latest"
+         name: ${{ steps.changelog.outputs.tag }}
+         body: ${{ steps.changelog.outputs.clean_changelog }}
+         prerelease: true
+         artifacts: |
+            ${FIRMWARE}/*.trx
+    - name: Remove obsolete firmwares on artifacts 🔥
       uses: c-hive/gha-remove-artifacts@v1.3.0
       if: env.STATUS == 'success'
       with:
