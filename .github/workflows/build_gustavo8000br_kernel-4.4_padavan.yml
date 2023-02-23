@@ -68,11 +68,10 @@ env:
   FIRMWARE_PATH: /opt/firmwares
   FW_TYPE: ${{ github.event.inputs.fw_type }}
 jobs:
-############### Start Configure #########################
-  configure:
+################### Start Build #################################
+  build:
     runs-on: ubuntu-20.04
     if: github.event.repository.owner.id == github.event.sender.id
-
     steps:
     - name: Checkout
       uses: actions/checkout@main
@@ -209,15 +208,6 @@ jobs:
         sed -i "s/FIRMWARE_BUILDS_TYPE=.*/FIRMWARE_BUILDS_TYPE=${{ github.event.inputs.fw_type }}/g" ./versions.inc
         echo 'Update version number time'
         #########################################################################################
-################### End Configure ###############################
-################### Start Build #################################
-  build:
-    runs-on: ubuntu-20.04
-    needs: 
-      - configure
-    if: github.event.repository.owner.id == github.event.sender.id
-
-    steps:
     - name: Build firmware 🦺
       run: |
         cd $WORK_PATH/trunk
@@ -238,13 +228,6 @@ jobs:
         echo "STATUS=success" >> $GITHUB_ENV
 ################## End Build ######################################
 ################## Upload #########################################
-  upload:
-    runs-on: ubuntu-20.04
-    needs: 
-      - configure
-      - build
-    if: github.event.repository.owner.id == github.event.sender.id
-    steps:
     - name : Upload packages ✅
       uses: actions/upload-artifact@main
       if: env.STATUS == 'success'
@@ -277,14 +260,6 @@ jobs:
          artifacts: |
             ${FIRMWARE}/*.trx
 ################################ End Upload ###############################
-  delete_files:
-    runs-on: ubuntu-20.04
-    needs: 
-      - configure
-      - build
-      - upload
-    if: github.event.repository.owner.id == github.event.sender.id
-    steps:
     - name: Remove obsolete firmwares on artifacts 🔥
       uses: c-hive/gha-remove-artifacts@v1.3.0
       if: env.STATUS == 'success'
