@@ -35,7 +35,7 @@ on:
       firmwarever:
         description: 'firmware''s version'
         required: true
-        default: '20230216'
+        default: '20230223'
       branch_to_build:
         type: choice
         description: 'select a branch from source to build'
@@ -54,6 +54,10 @@ on:
         type: boolean
         description: 'whether to upload firmware to wetransfer'
         default: 'true'
+      release:
+        type: boolean
+        description: 'make a release'
+        default: 'true'
 env:
   REPOSITORY_URL: https://github.com/gustavo8000br/padavan-4.4.git
   TOOLCHAIN_URL: https://github.com/hanwckf/padavan-toolchain/releases/download/linux-4.4-v1.0/mipsel-linux-uclibc.tar.xz
@@ -64,7 +68,8 @@ env:
   FIRMWARE_PATH: /opt/firmwares
   FW_TYPE: ${{ github.event.inputs.fw_type }}
 jobs:
-  build:
+############### Start Configure #########################
+  configure:
     runs-on: ubuntu-20.04
     if: github.event.repository.owner.id == github.event.sender.id
 
@@ -203,6 +208,15 @@ jobs:
         sed -i "s/FIRMWARE_BUILDS_REV=.*/FIRMWARE_BUILDS_REV=${{ github.event.inputs.fw_type }}"_"${{ github.event.inputs.firmwarever }}/g" ./versions.inc
         echo 'Update version number time'
         #########################################################################################
+################### End Configure ###############################
+################### Start Build #################################
+  build:
+    runs-on: ubuntu-20.04
+    needs: 
+      - configure
+    if: github.event.repository.owner.id == github.event.sender.id
+
+    steps:
     - name: Build firmware 🦺
       run: |
         cd $WORK_PATH/trunk
@@ -221,19 +235,28 @@ jobs:
         cd $FIRMWARE_PATH
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "STATUS=success" >> $GITHUB_ENV
+################## End Build ######################################
+################## Upload #########################################
+  upload:
+    runs-on: ubuntu-20.04
+    needs: 
+      - configure
+      - build
+    if: github.event.repository.owner.id == github.event.sender.id
+    steps:
     - name : Upload packages ✅
       uses: actions/upload-artifact@main
       if: env.STATUS == 'success'
       with:
         name: Padavan44-packages
         path: ${{ env.FIRMWARE }}
-    - name : Changelog 📝
-      if: env.STATUS == 'success' && github.event.inputs.uploadwet == 'true'
-      uses: TriPSs/conventional-changelog-action@v3.18.0
-      id: Changelog
-      env:
-       git-branch: ${{ github.event.inputs.fw_type }}
-       git-url: ${{ env.REPOSITORY_URL }}
+    #- name : Changelog 📝
+    #  if: env.STATUS == 'success' && github.event.inputs.release == 'true'
+    #  uses: TriPSs/conventional-changelog-action@v3.18.0
+    #  id: Changelog
+    #  env:
+    #   git-branch: ${{ github.event.inputs.fw_type }}
+    #   git-url: ${{ env.REPOSITORY_URL }}
     - name: Upload firmware to WeTransfer ✅
       if: env.STATUS == 'success' && github.event.inputs.uploadwet == 'true'
       run: |
@@ -243,16 +266,24 @@ jobs:
         echo "WETRANSFER_URL=$(cat wetransfer.log | grep -o -E "https?://[a-zA-Z0-9\.\/_&=@$%?~#-]*")" >> $GITHUB_ENV
     - name: Create Release 🚀
       uses: ncipollo/release-action@v1.12.0
-      if: env.STATUS == 'success'
+      if: env.STATUS == 'success' && github.event.inputs.release == 'true'
       id: create_release
       with:
          token: ${{ secrets.GITHUB_TOKEN }}
          tag: "latest"
-         name: ${{ steps.changelog.outputs.tag }}
-         body: ${{ steps.changelog.outputs.clean_changelog }}
+         name: "latest"
          prerelease: true
          artifacts: |
             ${FIRMWARE}/*.trx
+################################ End Upload ###############################
+  delete_files:
+    runs-on: ubuntu-20.04
+    needs: 
+      - configure
+      - build
+      - upload
+    if: github.event.repository.owner.id == github.event.sender.id
+    steps:
     - name: Remove obsolete firmwares on artifacts 🔥
       uses: c-hive/gha-remove-artifacts@v1.3.0
       if: env.STATUS == 'success'
