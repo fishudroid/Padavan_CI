@@ -205,7 +205,8 @@ jobs:
         #echo "customization=y" >> .config
         sed -i '/CONFIG_FIRMWARE_INCLUDE_LANG_BR/d' .config
         echo "CONFIG_FIRMWARE_INCLUDE_LANG_BR=${{env.lang_br}}" >> .config
-        sed -i "s/FIRMWARE_BUILDS_REV=.*/FIRMWARE_BUILDS_REV=${{ github.event.inputs.fw_type }}"_"${{ github.event.inputs.firmwarever }}/g" ./versions.inc
+        sed -i "s/FIRMWARE_BUILDS_REV=.*/FIRMWARE_BUILDS_REV=${{ github.event.inputs.firmwarever }}/g" ./versions.inc
+        sed -i "s/FIRMWARE_BUILDS_TYPE=.*/FIRMWARE_BUILDS_TYPE=${{ github.event.inputs.fw_type }}/g" ./versions.inc
         echo 'Update version number time'
         #########################################################################################
 ################### End Configure ###############################
