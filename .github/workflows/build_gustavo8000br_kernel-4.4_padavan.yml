@@ -229,7 +229,7 @@ jobs:
         path: ${{ env.FIRMWARE }}
     - name : Changelog 📝
       if: env.STATUS == 'success' && github.event.inputs.uploadwet == 'true'
-      uses: TriPSs/conventional-changelog-action@3.18.0
+      uses: TriPSs/conventional-changelog-action@v3.18.0
       id: Changelog
       env:
        git-branch: ${{ github.event.inputs.fw_type }}
