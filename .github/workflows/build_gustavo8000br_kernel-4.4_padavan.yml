@@ -138,13 +138,13 @@ jobs:
       run: |
         cd $WORK_PATH/trunk
         echo #################### DEBUG #####################################
-        echo DEVICE: ${{ github.event.inputs.targets }}
+        echo DEVICE: ${{env.targets}}
         echo #################### DEBUG #####################################
-        if [ ! -f configs/templates/${{ github.event.inputs.targets }}.config ] ; then
-        echo "configs/templates/${{ github.event.inputs.targets }}.config not found"
+        if [ ! -f configs/templates/${{env.targets}}.config ] ; then
+        echo "configs/templates/${{env.targets}}.config not found"
         exit 1
         fi
-        cp -f configs/templates/${{ github.event.inputs.targets }}.config .config
+        cp -f configs/templates/${{env.targets}}.config .config
         ################################################################################################
         # Because different models have different configuration functions,
         # so delete the configuration item first, if you want to add others, 
