@@ -5,31 +5,6 @@ on:
  # pull_request:
   workflow_dispatch:
     inputs:
-   #    target:
-   #     type: choice
-   #     description: 'target to compile'
-   #     options:
-   #     - K2P
-   #     - RM2100
-   #     - R2100
-   #     - K2P-USB
-   #     - CR660x
-   #     - JCG-Q20
-   #     - JCG-AC860M
-   #     - JCG-AC876M
-   #     - JCG-Y2
-   #     - DIR-878
-   #     - DIR-882
-   #     - MR2600
-   #     - MI-R3P
-   #     - MI-R3G
-   #     - XY-C1
-   #     - WR1200JS
-   #     - MSG1500
-   #     - BELL-A040WQ
-   #     - ZTE-E8820S
-   #     - B70
-   #     default: ZTE-E8820S
       plugins:
         description: 'json format string of include configs'
         required: true
@@ -232,13 +207,12 @@ jobs:
         cd $WORK_PATH/trunk
         mkdir -p $FIRMWARE_PATH/
         sudo ./clear_tree
-        for m in $targets; do fakeroot ./build_firmware_ci $m; \
+        for m in $targets; do sudo ./build_firmware_modify $m; \
           if [ $? = 0 ]; then cp -f images/*.trx $FIRMWARE_PATH/$m.trx; else exit 1; fi; \
           ./clear_tree_simple >/dev/null 2>&1; done
         echo "FIRMWARE_DATEPREFIX=$(date +"%Y%m%d")" >> $GITHUB_ENV
         echo "FIRMWARE_TYPE=${{ github.event.inputs.fw_type }}" >> $GITHUB_ENV
-        
-    # sudo ./build_firmware_modify ${{ github.event.inputs.targets }} 0 # Old command
+
     - name: Organize firmware files 🚚📦️
       id: organize-types
       run: |
@@ -266,7 +240,7 @@ jobs:
       id: read_release
       shell: bash
       run: |
-          r=$(cat release.md)                       # <--- Read release.md (Provide correct path as per your repo)
+          r=$(cat $WORK_PATH/trunk/release.md)                       # <--- Read release.md (Provide correct path as per your repo)
           r="${r//'%'/'%25'}"                               # Multiline escape sequences for %
           r="${r//$'\n'/'%0A'}"                             # Multiline escape sequences for '\n'
           r="${r//$'\r'/'%0D'}"                             # Multiline escape sequences for '\r'
