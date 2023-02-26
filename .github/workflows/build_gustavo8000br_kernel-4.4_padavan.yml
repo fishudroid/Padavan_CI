@@ -137,11 +137,11 @@ jobs:
     - name: Custom config 🌐
       run: |
         cd $WORK_PATH/trunk
-        if [ ! -f configs/templates/${{ fromJSON(github.event.inputs.targets)}}.config ] ; then
-        echo "configs/templates/${{ fromJSON(github.event.inputs.targets)}}.config not found"
+        if [ ! -f configs/templates/${{fromJson(github.event.inputs.targets)}}.config ] ; then
+        echo "configs/templates/${{fromJson(github.event.inputs.targets)}}.config not found"
         exit 1
         fi
-        cp -f configs/templates/${{ fromJSON(github.event.inputs.targets)}}.config .config
+        cp -f configs/templates/${{fromJson(github.event.inputs.targets)}}.config .config
         ################################################################################################
         # Because different models have different configuration functions,
         # so delete the configuration item first, if you want to add others, 
