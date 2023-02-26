@@ -205,24 +205,13 @@ jobs:
     - name: Build firmware 🦺
       run: |
         cd $WORK_PATH/trunk
-        mkdir -p $FIRMWARE_PATH/
+        mkdir -p $FIRMWARE_PATH
         sudo ./clear_tree
         for m in $targets; do sudo ./build_firmware_modify $m; \
           if [ $? = 0 ]; then cp -f images/*.trx $FIRMWARE_PATH/$m.trx; else exit 1; fi; \
           ./clear_tree_simple >/dev/null 2>&1; done
         echo "FIRMWARE_DATEPREFIX=$(date +"%Y%m%d")" >> $GITHUB_ENV
         echo "FIRMWARE_TYPE=${{ github.event.inputs.fw_type }}" >> $GITHUB_ENV
-
-    - name: Organize firmware files 🚚📦️
-      id: organize-types
-      run: |
-        cd $WORK_PATH/trunk/images
-        for firmwarefile in $(ls *.trx)
-        do sudo cp $firmwarefile $FIRMWARE_PATH/${FIRMWARE_TYPE}"_"${FIRMWARE_DATEPREFIX}"_"${FIRMWARE_AUTHOR}"_"${{ github.event.inputs.targets }}"_kernel-4.4.trx"
-        done
-        cd $FIRMWARE_PATH
-        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-        echo "STATUS=success" >> $GITHUB_ENV
 ################## End Build ######################################
 ################## Upload #########################################
     - name: Create archive
@@ -264,6 +253,16 @@ jobs:
           body: |
             ${{ steps.read_release.outputs.RELEASE_BODY }}
 ###########################################
+    - name: Organize firmware files 🚚📦️
+      id: organize-types
+      run: |
+        cd $WORK_PATH/trunk/images
+        for firmwarefile in $(ls *.trx)
+        do sudo mv $firmwarefile $FIRMWARE_PATH/${FIRMWARE_TYPE}"_"${FIRMWARE_DATEPREFIX}"_"${FIRMWARE_AUTHOR}"_"${{env.targets}}"_kernel-4.4.trx"
+        done
+        cd $FIRMWARE_PATH
+        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+        echo "STATUS=success" >> $GITHUB_ENV
     - name : Upload packages ✅
       uses: actions/upload-artifact@main
       if: env.STATUS == 'success'
