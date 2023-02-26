@@ -1,33 +1,35 @@
 name: Build gustavo8000br Kernel-4.4 Padavan
 
 on:
+ # push:
+ # pull_request:
   workflow_dispatch:
     inputs:
-      target:
-        type: choice
-        description: 'target to compile'
-        options:
-        - K2P
-        - RM2100
-        - R2100
-        - K2P-USB
-        - CR660x
-        - JCG-Q20
-        - JCG-AC860M
-        - JCG-AC876M
-        - JCG-Y2
-        - DIR-878
-        - DIR-882
-        - MR2600
-        - MI-R3P
-        - MI-R3G
-        - XY-C1
-        - WR1200JS
-        - MSG1500
-        - BELL-A040WQ
-        - ZTE-E8820S
-        - B70
-        default: ZTE-E8820S
+   #    target:
+   #     type: choice
+   #     description: 'target to compile'
+   #     options:
+   #     - K2P
+   #     - RM2100
+   #     - R2100
+   #     - K2P-USB
+   #     - CR660x
+   #     - JCG-Q20
+   #     - JCG-AC860M
+   #     - JCG-AC876M
+   #     - JCG-Y2
+   #     - DIR-878
+   #     - DIR-882
+   #     - MR2600
+   #     - MI-R3P
+   #     - MI-R3G
+   #     - XY-C1
+   #     - WR1200JS
+   #     - MSG1500
+   #     - BELL-A040WQ
+   #     - ZTE-E8820S
+   #     - B70
+   #     default: ZTE-E8820S
       plugins:
         description: 'json format string of include configs'
         required: true
@@ -35,29 +37,27 @@ on:
       firmwarever:
         description: 'firmware''s version'
         required: true
-        default: '20230223'
+        default: '20230225'
       branch_to_build:
         type: choice
         description: 'select a branch from source to build'
         options:
         - main
         - pr-test
-        default: 'main'
+        default: 'pr-test'
       fw_type:
         type: choice
         description: 'select a branch from source to build a type of the fw'
         options:
         - main
         - pr-test
-        default: 'main'
+        default: 'pr-test'
       uploadwet:
         type: boolean
         description: 'whether to upload firmware to wetransfer'
         default: 'true'
-      release:
-        type: boolean
-        description: 'make a release'
-        default: 'true'
+  release:
+    types: [published]
 env:
   REPOSITORY_URL: https://github.com/gustavo8000br/padavan-4.4.git
   TOOLCHAIN_URL: https://github.com/hanwckf/padavan-toolchain/releases/download/linux-4.4-v1.0/mipsel-linux-uclibc.tar.xz
@@ -72,8 +72,24 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     if: github.event.repository.owner.id == github.event.sender.id
+    env:
+      build_variant: ${{ matrix.build_variant }}
+      targets: ${{ matrix.targets }}
+    strategy:
+      matrix:
+        include:
+         # - build_variant: "mt7620"
+         #   targets: "PSG1208 PSG1218 NEWIFI-MINI MI-MINI MI-3 OYE-001 5K-W20"
+         # - build_variant: "mt7628"
+         #   targets: "HC5861B MI-NANO MZ-R13 MZ-R13P 360P2 HC5761A HC5661A"
+         # - build_variant: "mt7621"
+         #   targets: "K2P_nano K2P DIR-878 RM2100 CR660x"
+         # - build_variant: "mt7621-usb"
+         #   targets: "XY-C1 JCG-836PRO JCG-AC860M JCG-Y2 DIR-882 A3004NS MSG1500 WR1200JS MI-R3G NEWIFI3 B70 ZTE-E8820S"
+          - build_variant: "mt7621-usb"
+            targets: "ZTE-E8820S"
     steps:
-    - name: Checkout
+    - name: Checkout ⚡️
       uses: actions/checkout@main
     - name: Initialization environment 🚧
       env:
@@ -118,14 +134,14 @@ jobs:
         echo "minieap=${{fromJson(github.event.inputs.plugins).minieap}}" >> $GITHUB_ENV
         echo "dogcom=${{fromJson(github.event.inputs.plugins).dogcom}}" >> $GITHUB_ENV
         echo "lang_br=${{fromJson(github.event.inputs.plugins).lang_br}}" >> $GITHUB_ENV
-    - name: Custom config
+    - name: Custom config 🌐
       run: |
         cd $WORK_PATH/trunk
-        if [ ! -f configs/templates/${{ github.event.inputs.target }}.config ] ; then
-        echo "configs/templates/${{ github.event.inputs.target }}.config not found"
+        if [ ! -f configs/templates/${{ github.event.inputs.targets }}.config ] ; then
+        echo "configs/templates/${{ github.event.inputs.targets }}.config not found"
         exit 1
         fi
-        cp -f configs/templates/${{ github.event.inputs.target }}.config .config
+        cp -f configs/templates/${{ github.event.inputs.targets }}.config .config
         ################################################################################################
         # Because different models have different configuration functions,
         # so delete the configuration item first, if you want to add others, 
@@ -211,36 +227,72 @@ jobs:
     - name: Build firmware 🦺
       run: |
         cd $WORK_PATH/trunk
+        mkdir -p $FIRMWARE_PATH/
         sudo ./clear_tree
-        sudo ./build_firmware_modify ${{ github.event.inputs.target }} 0
+        for m in $targets; do fakeroot ./build_firmware_ci $m; \
+          if [ $? = 0 ]; then cp -f images/*.trx $FIRMWARE_PATH/$m.trx; else exit 1; fi; \
+          ./clear_tree_simple >/dev/null 2>&1; done
         echo "FIRMWARE_DATEPREFIX=$(date +"%Y%m%d")" >> $GITHUB_ENV
         echo "FIRMWARE_TYPE=${{ github.event.inputs.fw_type }}" >> $GITHUB_ENV
-    - name: Organize firmware files 🎉🗃️
+        
+    # sudo ./build_firmware_modify ${{ github.event.inputs.targets }} 0 # Old command
+    - name: Organize firmware files 🚚📦️
       id: organize-types
       run: |
-        mkdir -p $FIRMWARE_PATH/
         cd $WORK_PATH/trunk/images
         for firmwarefile in $(ls *.trx)
-        do sudo mv $firmwarefile $FIRMWARE_PATH/${FIRMWARE_TYPE}"_"${FIRMWARE_DATEPREFIX}"_"${FIRMWARE_AUTHOR}"_"${{ github.event.inputs.target }}"_kernel-4.4.trx"
+        do sudo cp $firmwarefile $FIRMWARE_PATH/${FIRMWARE_TYPE}"_"${FIRMWARE_DATEPREFIX}"_"${FIRMWARE_AUTHOR}"_"${{ github.event.inputs.targets }}"_kernel-4.4.trx"
         done
         cd $FIRMWARE_PATH
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "STATUS=success" >> $GITHUB_ENV
 ################## End Build ######################################
 ################## Upload #########################################
+    - name: Create archive
+      if: ${{ github.event_name != 'release' && success() }}
+      run: |
+          ls -lh $FIRMWARE_PATH
+          GIT_VERSION=`git rev-parse --short=7 HEAD 2>/dev/null` && [ -n "$GIT_VERSION" ] && \
+          image_name=images_${build_variant}_${GIT_VERSION} || image_name=images_${build_variant}
+          cd $FIRMWARE_PATH; md5sum *.trx |tee md5sum.txt; 7z a -mx=9 ${image_name}.7z ./*
+          echo "image_name=${image_name}" >> $GITHUB_ENV
+    - uses: actions/checkout@v2
+      # This step reads a file from repo and use it for body of the release
+      # This works on any self-hosted runner OS
+    - name: Read release.md and use it as a body of new release
+      id: read_release
+      shell: bash
+      run: |
+          r=$(cat release.md)                       # <--- Read release.md (Provide correct path as per your repo)
+          r="${r//'%'/'%25'}"                               # Multiline escape sequences for %
+          r="${r//$'\n'/'%0A'}"                             # Multiline escape sequences for '\n'
+          r="${r//$'\r'/'%0D'}"                             # Multiline escape sequences for '\r'
+          echo "::set-output name=RELEASE_BODY::$r"         # <--- Set environment variable
+    - name: Upload images to Artifact
+      if: ${{ github.event_name != 'release' && success() }}
+      uses: actions/upload-artifact@v3.1.1
+      with:
+          name: ${{ env.image_name }}
+          path: ${{ env.FIRMWARE_PATH }}/*.7z
+    - name: Upload images to Releases
+      if: ${{ github.event_name == 'release' && success() }}
+      uses: svenstaro/upload-release-action@2.3.0
+      with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ env.FIRMWARE_PATH }}/*.trx
+          tag: ${{ github.ref }}
+          overwrite: true
+          prerelease: true
+          file_glob: true
+          body: |
+            ${{ steps.read_release.outputs.RELEASE_BODY }}
+###########################################
     - name : Upload packages ✅
       uses: actions/upload-artifact@main
       if: env.STATUS == 'success'
       with:
         name: Padavan44-packages
         path: ${{ env.FIRMWARE }}
-    #- name : Changelog 📝
-    #  if: env.STATUS == 'success' && github.event.inputs.release == 'true'
-    #  uses: TriPSs/conventional-changelog-action@v3.18.0
-    #  id: Changelog
-    #  env:
-    #   git-branch: ${{ github.event.inputs.fw_type }}
-    #   git-url: ${{ env.REPOSITORY_URL }}
     - name: Upload firmware to WeTransfer ✅
       if: env.STATUS == 'success' && github.event.inputs.uploadwet == 'true'
       run: |
@@ -248,16 +300,6 @@ jobs:
         ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
         echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep -o -E "https?://[a-zA-Z0-9\.\/_&=@$%?~#-]*")"
         echo "WETRANSFER_URL=$(cat wetransfer.log | grep -o -E "https?://[a-zA-Z0-9\.\/_&=@$%?~#-]*")" >> $GITHUB_ENV
-    #- name: Create Release 🚀
-    #  uses: ncipollo/release-action@v1.12.0
-    #  if: env.STATUS == 'success' && github.event.inputs.release == 'true'
-    #  id: create_release
-    #  with:
-    #     token: ${{ secrets.GITHUB_TOKEN }}
-    #     tag: "latest"
-    #     name: "latest"
-    #     prerelease: true
-    #     artifacts: ${FIRMWARE}/*.trx
 ################################ End Upload ###############################
     - name: Remove obsolete firmwares on artifacts 🔥
       uses: c-hive/gha-remove-artifacts@v1.3.0
